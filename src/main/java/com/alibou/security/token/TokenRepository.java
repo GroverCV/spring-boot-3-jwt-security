@@ -2,7 +2,10 @@ package com.alibou.security.token;
 
 import java.util.List;
 import java.util.Optional;
+
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface TokenRepository extends JpaRepository<Token, Integer> {
@@ -15,4 +18,8 @@ public interface TokenRepository extends JpaRepository<Token, Integer> {
   List<Token> findAllValidTokenByUser(Integer id);
 
   Optional<Token> findByToken(String token);
+
+  @Transactional
+  @Modifying
+  void deleteAllByUser_Id(Integer userId);
 }

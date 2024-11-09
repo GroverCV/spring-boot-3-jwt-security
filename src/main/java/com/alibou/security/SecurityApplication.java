@@ -2,7 +2,7 @@ package com.alibou.security;
 
 import com.alibou.security.auth.AuthenticationService;
 import com.alibou.security.auth.RegisterRequest;
-import com.alibou.security.user.Role;
+import com.alibou.security.user.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,27 +22,35 @@ public class SecurityApplication {
 
 	@Bean
 	public CommandLineRunner commandLineRunner(
-			AuthenticationService service
+			AuthenticationService service,
+			UserRepository userRepository
 	) {
 		return args -> {
-			var admin = RegisterRequest.builder()
-					.firstname("Admin")
-					.lastname("Admin")
-					.email("admin@mail.com")
-					.password("password")
-					.role(ADMIN)
-					.build();
-			System.out.println("Admin token: " + service.register(admin).getAccessToken());
+			// Verificar y crear admin solo si no existe
+			if (!userRepository.existsByEmail("admin@mail.com")) {
+				var admin = RegisterRequest.builder()
+						.firstname("Admin")
+						.lastname("Admin")
+						.email("admin@mail.com")
+						.password("password")
+						.role(ADMIN)
+						.build();
+				var adminToken = service.register(admin).getAccessToken();
+				System.out.println("Admin token: " + adminToken);
+			}
 
-			var manager = RegisterRequest.builder()
-					.firstname("Admin")
-					.lastname("Admin")
-					.email("manager@mail.com")
-					.password("password")
-					.role(MANAGER)
-					.build();
-			System.out.println("Manager token: " + service.register(manager).getAccessToken());
-
+			// Verificar y crear manager solo si no existe
+			if (!userRepository.existsByEmail("manager@mail.com")) {
+				var manager = RegisterRequest.builder()
+						.firstname("Admin")
+						.lastname("Admin")
+						.email("manager@mail.com")
+						.password("password")
+						.role(MANAGER)
+						.build();
+				var managerToken = service.register(manager).getAccessToken();
+				System.out.println("Manager token: " + managerToken);
+			}
 		};
 	}
 }

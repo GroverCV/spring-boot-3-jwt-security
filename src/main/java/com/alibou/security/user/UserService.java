@@ -19,11 +19,11 @@ public class UserService {
 
         // check if the current password is correct
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new IllegalStateException("Wrong password");
+            throw new IllegalStateException("Contraseña Incorrecta");
         }
         // check if the two new passwords are the same
         if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
-            throw new IllegalStateException("Password are not the same");
+            throw new IllegalStateException("La contraseña no es Correcta");
         }
 
         // update the password
@@ -31,5 +31,34 @@ public class UserService {
 
         // save the new password
         repository.save(user);
+    }
+    // Eliminar usuario
+    public void deleteUser(Integer id) {
+        if (!repository.existsById(id)) {
+            throw new IllegalStateException("Usuario no Encontrado" + id);
+        }
+        repository.deleteById(id);
+    }
+
+    // Método helper para convertir User a UserDTO
+    private UserDTO convertToDTO(User user) {
+        return UserDTO.builder()
+                .id(user.getId())
+                .firstname(user.getFirstname())
+                .lastname(user.getLastname())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
+    }
+
+    // Métodos adicionales si los necesitas
+    public boolean existsByEmail(String email) {
+        return repository.existsByEmail(email);
+    }
+
+    public UserDTO findByEmail(String email) {
+        User user = repository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Usuario no tiene email: " + email));
+        return convertToDTO(user);
     }
 }

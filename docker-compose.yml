@@ -1,38 +1,42 @@
+version: '3.8'
+
 services:
   postgres:
     container_name: postgres-sql
-    image: postgres
+    image: postgres:latest
     environment:
       POSTGRES_USER: username
       POSTGRES_PASSWORD: password
-      PGDATA: /data/postgres
+      POSTGRES_DB: mydatabase
+      PGDATA: /var/lib/postgresql/data/pgdata  # Añadimos esta línea
     volumes:
-      - postgres:/data/postgres
+      - postgres_data:/var/lib/postgresql/data  # Cambiamos a volumen nombrado
     ports:
-      - "5432:5432"
-    networks:
-      - postgres
+      - "5433:5432"
     restart: unless-stopped
+    healthcheck:                               # Añadimos healthcheck
+      test: ["CMD-SHELL", "pg_isready -U username"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     container_name: pgadmin
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
-      - pgadmin:/var/lib/pgadmin
+      - pgadmin_data:/var/lib/pgadmin         # Cambiamos a volumen nombrado
     ports:
       - "5050:80"
-    networks:
-      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy            # Esperamos a que postgres esté sano
     restart: unless-stopped
 
-networks:
-  postgres:
-    driver: bridge
-
-volumes:
-  postgres:
-  pgadmin:
+volumes:                                      # Definimos los volúmenes nombrados
+  postgres_data:
+    name: postgres_data_vol
+  pgadmin_data:
+    name: pgadmin_data_vol
